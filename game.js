@@ -60,6 +60,14 @@ let isSimulationMode = false; // 시뮬레이션 모드 여부 (기본적으로 
 let isPaused = false;
 let pausedAt = null; // 일시정지 시작 시각(ms)
 
+// 일시정지 버튼 라벨 동기화
+function setPauseButtonsText(text) {
+    const btn1 = document.getElementById('pauseButton');
+    const btn2 = document.getElementById('pauseButtonTop');
+    if (btn1) btn1.textContent = text;
+    if (btn2) btn2.textContent = text;
+}
+
 // 일시정지 토글
 function togglePause() {
     if (gameState !== GAME_STATE_COUNTDOWN && gameState !== GAME_STATE_PLAYING) return;
@@ -74,8 +82,7 @@ function pauseGame() {
     if (isPaused) return;
     isPaused = true;
     pausedAt = Date.now();
-    const btn = document.getElementById('pauseButton');
-    if (btn) btn.textContent = '▶ 재개 (P)';
+    setPauseButtonsText('▶ 재개 (P)');
 }
 
 function resumeGame() {
@@ -87,8 +94,7 @@ function resumeGame() {
     if (gameStartTime) gameStartTime += pausedDuration;
     isPaused = false;
     pausedAt = null;
-    const btn = document.getElementById('pauseButton');
-    if (btn) btn.textContent = '⏸ 일시정지 (P)';
+    setPauseButtonsText('⏸ 일시정지 (P)');
 }
 
 // 경과 시간 계산(일시정지 고려)
@@ -314,8 +320,7 @@ function selectMode(mode) {
         // 카운트다운 시작
         if (DEBUG_VERBOSE) console.log('카운트다운 시작');
         isPaused = false; pausedAt = null;
-        const btn = document.getElementById('pauseButton');
-        if (btn) btn.textContent = '⏸ 일시정지 (P)';
+        setPauseButtonsText('⏸ 일시정지 (P)');
         
         // 게임 상태 변경 완료
         if (DEBUG_VERBOSE) {
@@ -990,8 +995,7 @@ function restartGame() {
 
     // 일시정지 상태 초기화
     isPaused = false; pausedAt = null;
-    const btn = document.getElementById('pauseButton');
-    if (btn) btn.textContent = '⏸ 일시정지 (P)';
+    setPauseButtonsText('⏸ 일시정지 (P)');
 }
 
 // 게임 렌더링
