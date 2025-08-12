@@ -490,8 +490,8 @@ async function initMediaPipe() {
             smoothLandmarks: true,
             enableSegmentation: false,
             smoothSegmentation: true,
-            minDetectionConfidence: 0.2,
-            minTrackingConfidence: 0.2,
+            minDetectionConfidence: 0.15, // 인식률 향상 위해 낮춤
+            minTrackingConfidence: 0.15, // 인식률 향상 위해 낮춤
             selfieMode: true,
         });
         
@@ -634,6 +634,7 @@ function startSimulationMode() {
 // MediaPipe Pose 결과 처리 함수
 function onPoseResults(results) {
     try {
+        if (DEBUG_VERBOSE) console.log('[Pose] 결과:', results);
         // Pose(Web)는 기본적으로 단일 인물만 반환하지만, 추후 멀티 인물 지원 시 확장 대비
         const lm = results && results.poseLandmarks;
         const newPlayers = [];
@@ -664,6 +665,7 @@ function onPoseResults(results) {
 // 얼굴 검출 폴백 초기화
 async function initFaceDetectionFallback() {
     try {
+        if (DEBUG_VERBOSE) console.log('=== FaceDetection 초기화 시작 ===');
         const FDNS = window.FaceDetection;
         const FDClass = FDNS?.FaceDetection || FDNS;
         if (!FDClass) {
@@ -675,7 +677,7 @@ async function initFaceDetectionFallback() {
         });
         faceDetector.setOptions({
             model: 'short',
-            minDetectionConfidence: CONFIG.minFaceConfidence,
+            minDetectionConfidence: 0.15, // 인식률 향상 위해 낮춤
             selfieMode: true,
         });
         faceDetector.onResults(onFaceResults);
@@ -697,6 +699,7 @@ async function initFaceDetectionFallback() {
 // 손 검출(Hands) 폴백 초기화
 async function initHandsFallback() {
     try {
+        if (DEBUG_VERBOSE) console.log('=== Hands 초기화 시작 ===');
         const HandsNS = window.Hands;
         const HandsClass = HandsNS?.Hands || HandsNS;
         if (!HandsClass) {
@@ -709,8 +712,8 @@ async function initHandsFallback() {
         handsDetector.setOptions({
             maxNumHands: 2,
             modelComplexity: 1,
-            minDetectionConfidence: 0.35,
-            minTrackingConfidence: 0.35,
+            minDetectionConfidence: 0.15, // 인식률 향상 위해 낮춤
+            minTrackingConfidence: 0.15, // 인식률 향상 위해 낮춤
         });
         handsDetector.onResults(onHandsResults);
 
@@ -729,6 +732,7 @@ async function initHandsFallback() {
 
 function onHandsResults(results) {
     try {
+        if (DEBUG_VERBOSE) console.log('[Hands] 결과:', results);
         const multi = Array.isArray(results?.multiHandLandmarks) ? results.multiHandLandmarks : [];
         if (multi.length === 0) return;
         const { x: camX, y: camY, width: camW, height: camH } = getCameraDrawRect();
@@ -754,6 +758,7 @@ function onHandsResults(results) {
 
 function onFaceResults(results) {
     try {
+        if (DEBUG_VERBOSE) console.log('[FaceDetection] 결과:', results);
         const detections = Array.isArray(results?.detections) ? results.detections : [];
         // console.log(`FaceDetection 결과 수: ${detections.length}`);
         const newPlayers = [];
@@ -785,6 +790,7 @@ function onFaceResults(results) {
 
 // Human.js 기반 최종 폴백 (머리/얼굴 검출)
 async function initHumanFallback() {
+    if (DEBUG_VERBOSE) console.log('=== Human.js 폴백 초기화 시작 ===');
     if (typeof window.Human === 'undefined') return;
     human = new window.Human.Human({
         modelBasePath: 'https://cdn.jsdelivr.net/npm/@vladmandic/human@3.7.3/models',
