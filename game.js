@@ -481,7 +481,7 @@ async function initMediaPipe() {
         
         // Pose 객체 생성 (네임스페이스 호환)
         pose = new PoseClass({
-            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469408/${file}`,
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`,
         });
         
         if (DEBUG_VERBOSE) console.log('MediaPipe Pose 옵션 설정 중...');
@@ -673,7 +673,7 @@ async function initFaceDetectionFallback() {
             return;
         }
         faceDetector = new FDClass({
-            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@0.4.1646425223/${file}`,
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`,
         });
         faceDetector.setOptions({
             model: 'short',
@@ -707,7 +707,7 @@ async function initHandsFallback() {
             return;
         }
         handsDetector = new HandsClass({
-            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/${file}`,
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
         });
         handsDetector.setOptions({
             maxNumHands: 2,
