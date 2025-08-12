@@ -11,7 +11,7 @@ const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
 // 설정값(현장 보정용)
 const CONFIG = {
-    cameraScale: 0.5,           // 카메라 표시 배율
+    cameraScale: 1.0,           // 카메라 표시 배율 (2배로 크게)
     pixelsPerMeter: 150,        // 1m에 해당하는 픽셀 수
     matchRadiusPx: 100,         // 트랙 매칭 반경(px)
     emaAlpha: 0.35,             // 트랙 스무딩 가중치(0~1)
@@ -46,6 +46,7 @@ let stream = null;
 let pose;
 let camera;
 let faceDetector;
+let handsDetector; // 손 검출기
 let human; // 최종 폴백(머리/얼굴 검출)
 
 // 다중 인물 추적
@@ -690,6 +691,64 @@ async function initFaceDetectionFallback() {
         console.log('얼굴 검출 폴백 시작');
     } catch (error) {
         console.error('initFaceDetectionFallback 오류:', error);
+    }
+}
+
+// 손 검출(Hands) 폴백 초기화
+async function initHandsFallback() {
+    try {
+        const HandsNS = window.Hands;
+        const HandsClass = HandsNS?.Hands || HandsNS;
+        if (!HandsClass) {
+            console.warn('Hands 라이브러리가 로드되지 않았습니다.');
+            return;
+        }
+        handsDetector = new HandsClass({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/${file}`,
+        });
+        handsDetector.setOptions({
+            maxNumHands: 2,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.35,
+            minTrackingConfidence: 0.35,
+        });
+        handsDetector.onResults(onHandsResults);
+
+        const run = async () => {
+            if (video && video.readyState >= 2) {
+                try { await handsDetector.send({ image: video }); } catch (e) { console.error(e); }
+            }
+            if (gameState !== GAME_STATE_GAME_OVER) requestAnimationFrame(run);
+        };
+        run();
+        console.log('손 검출 폴백 시작');
+    } catch (error) {
+        console.error('initHandsFallback 오류:', error);
+    }
+}
+
+function onHandsResults(results) {
+    try {
+        const multi = Array.isArray(results?.multiHandLandmarks) ? results.multiHandLandmarks : [];
+        if (multi.length === 0) return;
+        const { x: camX, y: camY, width: camW, height: camH } = getCameraDrawRect();
+        const newPlayers = [];
+        for (let i = 0; i < multi.length; i++) {
+            const lm = multi[i];
+            // 중심점 계산 (모든 랜드마크 평균)
+            let sx = 0, sy = 0;
+            for (let k = 0; k < lm.length; k++) { sx += lm[k].x; sy += lm[k].y; }
+            const cx = sx / lm.length; const cy = sy / lm.length;
+            const px = camX + Math.max(0, Math.min(1, cx)) * camW;
+            const py = camY + Math.max(0, Math.min(1, cy)) * camH;
+            newPlayers.push({ x: px, y: py, id: Date.now() + i, confidence: 1 });
+        }
+        if (newPlayers.length > 0) {
+            updateTracks(newPlayers);
+        }
+        updatePlayerCount(playerPositions.length);
+    } catch (error) {
+        console.error('onHandsResults 오류:', error);
     }
 }
 

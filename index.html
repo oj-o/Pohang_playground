@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Jua&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469408/pose.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@0.4.1646425223/face_detection.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/hands.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466862/camera_utils.js"></script>
     <!-- 최종 폴백: @vladmandic/human (브라우저 내 얼굴검출) -->
     <script src="https://cdn.jsdelivr.net/npm/@vladmandic/human@3.7.3/dist/human.js"></script>
@@ -17,6 +18,7 @@
       try { if (typeof window.Pose === 'undefined' && typeof Pose !== 'undefined') window.Pose = Pose; } catch (e) {}
       try { if (typeof window.Camera === 'undefined' && typeof Camera !== 'undefined') window.Camera = Camera; } catch (e) {}
       try { if (typeof window.FaceDetection === 'undefined' && typeof FaceDetection !== 'undefined') window.FaceDetection = FaceDetection; } catch (e) {}
+      try { if (typeof window.Hands === 'undefined' && typeof Hands !== 'undefined') window.Hands = Hands; } catch (e) {}
       try { if (typeof window.Human === 'undefined' && typeof Human !== 'undefined') window.Human = Human; } catch (e) {}
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1675466862/drawing_utils.js"></script>
