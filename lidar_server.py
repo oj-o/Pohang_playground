@@ -18,44 +18,26 @@ async def lidar_reader(websocket):
         ser = serial.Serial(LIDAR_PORT, LIDAR_BAUDRATE, timeout=1)
         print(f"LIDAR 포트 {LIDAR_PORT}에 연결되었습니다.")
 
-        # YDLidar X4 Pro 데이터 파싱 로직 (플레이스홀더)
-        # 실제 YDLidar X4 Pro는 특정 프로토콜(예: A1/A2/A3 시리즈의 RPLIDAR 프로토콜과 유사)을 따릅니다.
-        # 여기서는 간단한 시뮬레이션 데이터를 전송합니다.
-        # 실제 구현 시에는 YDLidar SDK 또는 관련 라이브러리를 사용하여 데이터를 파싱해야 합니다.
-        # 예: https://github.com/SkoltechRobotics/rplidar/blob/master/rplidar.py 참고
 
-        # YDLidar X4 Pro 데이터 파싱 로직 (플레이스홀더)
-        # 실제 구현 시에는 YDLidar SDK 또는 관련 라이브러리를 사용하여 데이터를 파싱해야 합니다.
-        # 예: https://github.com/SkoltechRobotics/rplidar/blob/master/rplidar.py 참고
-        # YDLidar X4 Pro는 360도 스캔 데이터를 제공하며, 각도와 거리 쌍으로 이루어져 있습니다.
-        # 여기서는 이 데이터를 읽고, 간단한 클러스터링을 통해 여러 객체를 감지하는 예시를 보여줍니다.
-
-        # 가상의 LIDAR 스캔 데이터 (각도, 거리)
-        # 실제로는 ser.read() 등을 통해 라이다에서 데이터를 읽어야 합니다.
-        # 이 예시에서는 2~3개의 가상 객체를 생성합니다.
-        
         # 클러스터링을 위한 임계값 (예: 0.2m 이내의 점들은 같은 객체로 간주)
         CLUSTER_THRESHOLD = 0.2 # meters
 
         while True:
-            # --- 실제 라이다 데이터 읽기 및 파싱 (이 부분은 실제 YDLidar 프로토콜에 맞춰 구현해야 함) ---
-            # 예시: raw_scan_data = read_from_lidar(ser)
-            # raw_scan_data는 [(angle1, dist1), (angle2, dist2), ...] 형태라고 가정
-
-            # 현재는 시뮬레이션된 스캔 데이터 사용
-            simulated_scan_data = []
-            num_objects = 2 + int(time.time() % 2) # 2 또는 3개의 객체 시뮬레이션
+            # --- 실제 라이다 데이터 읽기 (이 부분은 YDLidar 프로토콜에 맞춰 구현해야 함) ---
+            # YDLidar X4 Pro는 연속적으로 스캔 데이터를 전송합니다.
+            # 여기서는 시리얼 버퍼에서 데이터를 읽고 파싱 함수로 전달합니다.
             
-            for i in range(num_objects):
-                # 각 객체에 대해 여러 점을 생성하여 클러스터링을 시뮬레이션
-                base_angle = (i * 60 + (time.time() * 5) % 30) % 360 # 각 객체의 기준 각도
-                base_dist = 1.0 + (i * 0.5) + (time.time() % 1) * 0.1 # 각 객체의 기준 거리
-                
-                for j in range(5): # 각 객체당 5개의 점
-                    angle = (base_angle + (j - 2) * 2) % 360 # 기준 각도 주변으로 분산
-                    dist = base_dist + (j - 2) * 0.05 # 기준 거리 주변으로 분산
-                    simulated_scan_data.append((angle, dist))
-            # --- 시뮬레이션 끝 ---
+            # 주의: 이 부분은 매우 중요하며, YDLidar X4 Pro의 정확한 프로토콜에 따라
+            # 패킷 동기화, 체크섬 검증, 데이터 추출 로직이 들어가야 합니다.
+            # ser.read()는 지정된 바이트 수만큼 읽거나 타임아웃됩니다.
+            # 실제로는 패킷의 시작 바이트를 찾고, 패킷 길이를 읽어 전체 패킷을 읽는 방식이 필요합니다.
+            
+            raw_bytes = ser.read(1024) # 일단 1024바이트를 읽어 시도 (실제로는 패킷 단위로 읽어야 함)
+            
+            if raw_bytes:
+                scan_data = parse_lidar_data(raw_bytes) # 실제 파싱 함수 호출
+            else:
+                scan_data = [] # 데이터가 없으면 빈 리스트
 
             # --- 기본적인 클러스터링 및 객체 위치 추정 ---
             detected_objects = []
@@ -63,7 +45,7 @@ async def lidar_reader(websocket):
             # 스캔 데이터를 Cartesian 좌표로 변환 (x, y)
             # 라이다는 보통 (0,0)에 위치한다고 가정
             cartesian_points = []
-            for angle_deg, dist_m in simulated_scan_data:
+            for angle_deg, dist_m in scan_data: # Use scan_data here
                 angle_rad = math.radians(angle_deg)
                 x = dist_m * math.cos(angle_rad)
                 y = dist_m * math.sin(angle_rad)

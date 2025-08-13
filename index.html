@@ -264,6 +264,12 @@
                 <div id="lidarDistanceDisplay" style="margin-top: 5px; font-weight: bold; color: #007BFF;">
                     📡 라이다 거리: <span id="currentLidarDistance">N/A</span>m
                 </div>
+                <div id="playerPositionsDisplay" style="margin-top: 10px; text-align: left; font-size: 0.9em; color: #555;">
+                    <p style="font-weight: bold; margin-bottom: 5px;">감지된 플레이어 위치 (x, y):</p>
+                    <ul id="playerList" style="list-style-type: none; padding: 0; margin: 0;">
+                        <!-- Player positions will be listed here -->
+                    </ul>
+                </div>
                 <div style="margin-top: 10px;">
                     <button class="pause-button" id="pauseButton" onclick="togglePause()">⏸ 일시정지 (P)</button>
                 </div>

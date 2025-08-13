@@ -87,6 +87,7 @@ function initLidarWebSocket() {
                         id: Date.now() + Math.random() // 고유 ID 부여
                     }));
                     updatePlayerCount(playerPositions.length);
+                    updatePlayerPositionsDisplay(); // Call new function to update UI
                     if (DEBUG_VERBOSE) console.log('라이다 플레이어 위치 수신:', playerPositions);
                 } else if (data.type === 'error') {
                     console.error('라이다 서버 오류:', data.message);
@@ -928,6 +929,23 @@ function updatePlayerCount(count) {
         playerCountElement.textContent = count.toString();
     }
     if (DEBUG_VERBOSE) console.log(`플레이어 수 UI 업데이트: ${count}명`);
+}
+
+// 플레이어 위치 목록 UI 업데이트
+function updatePlayerPositionsDisplay() {
+    const playerListElement = document.getElementById('playerList');
+    if (playerListElement) {
+        playerListElement.innerHTML = ''; // Clear previous list
+        if (playerPositions.length === 0) {
+            playerListElement.innerHTML = '<li>감지된 플레이어 없음</li>';
+        } else {
+            playerPositions.forEach((p, index) => {
+                const listItem = document.createElement('li');
+                listItem.textContent = `플레이어 ${index + 1}: (x: ${p.x.toFixed(1)}, y: ${p.y.toFixed(1)})`;
+                playerListElement.appendChild(listItem);
+            });
+        }
+    }
 }
 
 // 게임 루프
