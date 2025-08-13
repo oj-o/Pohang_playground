@@ -61,8 +61,7 @@ let isSimulationMode = false; // 시뮬레이션 모드 여부 (기본적으로 
 let isPaused = false;
 let pausedAt = null; // 일시정지 시작 시각(ms)
 
-// 라이다 데이터
-let latestLidarDistance = null; // 가장 최근에 수신된 라이다 거리 (미터)
+
 
 // 라이다 WebSocket 연결 초기화
 function initLidarWebSocket() {
@@ -80,13 +79,15 @@ function initLidarWebSocket() {
         ws.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
-                if (data.type === 'lidar_closest_distance') {
-                    latestLidarDistance = data.distance_m;
-                    if (DEBUG_VERBOSE) console.log('라이다 거리 수신:', latestLidarDistance, 'm');
-                    const lidarDisplay = document.getElementById('currentLidarDistance');
-                    if (lidarDisplay) {
-                        lidarDisplay.textContent = latestLidarDistance.toFixed(2);
-                    }
+                if (data.type === 'lidar_player_positions') {
+                    // 라이다에서 감지된 플레이어 위치 배열 수신
+                    playerPositions = data.players.map(p => ({
+                        x: p.x * CONFIG.pixelsPerMeter + CANVAS_WIDTH / 2, // 미터 단위를 픽셀로 변환 및 캔버스 중앙으로 이동
+                        y: p.y * CONFIG.pixelsPerMeter + CANVAS_HEIGHT / 2,
+                        id: Date.now() + Math.random() // 고유 ID 부여
+                    }));
+                    updatePlayerCount(playerPositions.length);
+                    if (DEBUG_VERBOSE) console.log('라이다 플레이어 위치 수신:', playerPositions);
                 } else if (data.type === 'error') {
                     console.error('라이다 서버 오류:', data.message);
                     updateCameraStatus(`라이다 오류: ${data.message}`);
@@ -226,13 +227,13 @@ async function initGame() {
         if (DEBUG_VERBOSE) console.log('게임 루프 시작...');
         gameLoop();
         
-        // 카메라 요청 (즉시 시작)
-        if (DEBUG_VERBOSE) console.log('카메라 요청 시작...');
-        requestCamera().catch(error => {
-            console.log('카메라 요청 실패:', error);
-            // 시뮬레이션 모드는 게임 시작 후에만 활성화
-            console.log('카메라 없이도 게임을 시작할 수 있습니다.');
-        });
+        // // 카메라 요청 (즉시 시작) - 라이다 전용 모드에서는 사용 안 함
+        // if (DEBUG_VERBOSE) console.log('카메라 요청 시작...');
+        // requestCamera().catch(error => {
+        //     console.log('카메라 요청 실패:', error);
+        //     // 시뮬레이션 모드는 게임 시작 후에만 활성화
+        //     console.log('카메라 없이도 게임을 시작할 수 있습니다.');
+        // });
         
         if (DEBUG_VERBOSE) console.log('=== 게임 초기화 완료 ===');
         
@@ -1060,21 +1061,7 @@ function calculateScore() {
     const error = Math.abs(median - targetPx);
     const tolerance = targetPx * 0.5; // 목표의 ±50% 구간을 가변 허용
     const normalized = Math.max(0, 1 - error / (tolerance || 1));
-    let lidarInfluence = 0;
-    if (latestLidarDistance !== null) {
-        const targetMeters = currentMode ? targetDistances[currentMode - 1] : 1.2;
-        const lidarTargetDiff = Math.abs(latestLidarDistance - targetMeters);
-        const lidarTolerance = targetMeters * 0.3; // 30% tolerance for LIDAR
-
-        if (lidarTargetDiff <= lidarTolerance) {
-            lidarInfluence = 10; // Bonus points if LIDAR distance is within tolerance
-        } else {
-            lidarInfluence = -10; // Penalty if LIDAR distance is outside tolerance
-        }
-        if (DEBUG_VERBOSE) console.log(`라이다 영향: ${lidarInfluence}, 라이다 거리: ${latestLidarDistance}m, 목표: ${targetMeters}m`);
-    }
-
-    score = Math.round(normalized * 100) + lidarInfluence;
+    score = Math.round(normalized * 100);
     score = Math.max(0, Math.min(100, score)); // Keep score between 0 and 100
     return score;
 }
