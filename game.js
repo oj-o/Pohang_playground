@@ -61,6 +61,61 @@ let isSimulationMode = false; // 시뮬레이션 모드 여부 (기본적으로 
 let isPaused = false;
 let pausedAt = null; // 일시정지 시작 시각(ms)
 
+// 라이다 데이터
+let latestLidarDistance = null; // 가장 최근에 수신된 라이다 거리 (미터)
+
+// 라이다 WebSocket 연결 초기화
+function initLidarWebSocket() {
+    const WS_URL = `ws://localhost:8765`; // lidar_server.py의 WebSocket 주소
+    let ws;
+
+    function connect() {
+        ws = new WebSocket(WS_URL);
+
+        ws.onopen = () => {
+            console.log('라이다 WebSocket 연결됨');
+            updateCameraStatus('라이다 연결됨! 📡');
+        };
+
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type === 'lidar_closest_distance') {
+                    latestLidarDistance = data.distance_m;
+                    if (DEBUG_VERBOSE) console.log('라이다 거리 수신:', latestLidarDistance, 'm');
+                    const lidarDisplay = document.getElementById('currentLidarDistance');
+                    if (lidarDisplay) {
+                        lidarDisplay.textContent = latestLidarDistance.toFixed(2);
+                    }
+                } else if (data.type === 'error') {
+                    console.error('라이다 서버 오류:', data.message);
+                    updateCameraStatus(`라이다 오류: ${data.message}`);
+                }
+            } catch (e) {
+                console.error('라이다 WebSocket 메시지 파싱 오류:', e);
+            }
+        };
+
+        ws.onclose = () => {
+            console.warn('라이다 WebSocket 연결 끊김. 5초 후 재연결 시도...');
+            updateCameraStatus('라이다 연결 끊김 💔');
+            setTimeout(connect, 5000); // 5초 후 재연결 시도
+        };
+
+        ws.onerror = (error) => {
+            console.error('라이다 WebSocket 오류:', error);
+            updateCameraStatus('라이다 오류 발생 🚨');
+            ws.close(); // 오류 발생 시 연결 종료 후 재연결 시도
+        };
+    }
+
+    connect(); // 초기 연결 시도
+}
+
+
+
+
+
 // 일시정지 버튼 라벨 동기화
 function setPauseButtonsText(text) {
     const btn1 = document.getElementById('pauseButton');
@@ -160,6 +215,9 @@ async function initGame() {
         // 이벤트 리스너 설정
         setupEventListeners();
         
+        // 라이다 WebSocket 연결 초기화
+        initLidarWebSocket();
+
         // 초기 화면 렌더링
         if (DEBUG_VERBOSE) console.log('초기 화면 렌더링 시작...');
         renderWaitingScreen();
@@ -1002,7 +1060,22 @@ function calculateScore() {
     const error = Math.abs(median - targetPx);
     const tolerance = targetPx * 0.5; // 목표의 ±50% 구간을 가변 허용
     const normalized = Math.max(0, 1 - error / (tolerance || 1));
-    score = Math.round(normalized * 100);
+    let lidarInfluence = 0;
+    if (latestLidarDistance !== null) {
+        const targetMeters = currentMode ? targetDistances[currentMode - 1] : 1.2;
+        const lidarTargetDiff = Math.abs(latestLidarDistance - targetMeters);
+        const lidarTolerance = targetMeters * 0.3; // 30% tolerance for LIDAR
+
+        if (lidarTargetDiff <= lidarTolerance) {
+            lidarInfluence = 10; // Bonus points if LIDAR distance is within tolerance
+        } else {
+            lidarInfluence = -10; // Penalty if LIDAR distance is outside tolerance
+        }
+        if (DEBUG_VERBOSE) console.log(`라이다 영향: ${lidarInfluence}, 라이다 거리: ${latestLidarDistance}m, 목표: ${targetMeters}m`);
+    }
+
+    score = Math.round(normalized * 100) + lidarInfluence;
+    score = Math.max(0, Math.min(100, score)); // Keep score between 0 and 100
     return score;
 }
 
