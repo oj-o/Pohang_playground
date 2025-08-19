@@ -1226,7 +1226,7 @@ function renderWaitingScreen() {
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 48px "Baloo 2", "Jua", "Comic Sans MS"';
         ctx.textAlign = 'center';
-        ctx.fillText('🎮 소셜 디스턴스 게임 🎮', canvas.width / 2, 120);
+        ctx.fillText('🎮 세이프 디스턴스 게임 🎮', canvas.width / 2, 120);
         
         // 부제목
         ctx.font = '24px Comic Sans MS';
