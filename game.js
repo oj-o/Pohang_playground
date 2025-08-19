@@ -1334,7 +1334,7 @@ function renderPlayingScreen() {
     ctx.fillStyle = '#FFFFFF';
     ctx.shadowColor = 'rgba(255, 182, 193, 0.6)';
     ctx.shadowBlur = 12;
-    ctx.fillText('🎮 소셜 디스턴스 게임', CANVAS_WIDTH / 2, 46);
+    ctx.fillText('🎮 세이프 디스턴스 게임', CANVAS_WIDTH / 2, 46);
     ctx.restore();
     
     // 카메라 피드 그리기 (1/2 크기)
