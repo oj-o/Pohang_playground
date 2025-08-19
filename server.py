@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Simple HTTP server for the Social Distancing Game
+Simple HTTP server for the Safe Distancing Gamef
 Run this file to start the web server, then open your browser to http://localhost:8000
 """
 
@@ -35,7 +35,7 @@ def start_server():
     os.chdir(DIRECTORY)
     
     with socketserver.TCPServer(("", PORT), CustomHTTPRequestHandler) as httpd:
-        print(f"🚀 Social Distancing Game server started!")
+        print(f"🚀 Safe Distancing Game server started!")
         print(f"📁 Serving files from: {DIRECTORY}")
         print(f"🌐 Open your browser to: http://localhost:{PORT}")
         print(f"⏹️  Press Ctrl+C to stop the server")
@@ -55,3 +55,4 @@ def start_server():
 
 if __name__ == "__main__":
     start_server()
+
