@@ -1,5 +1,6 @@
 @echo off
-echo Starting Social Distancing Game Web Server...
+echo Starting Safe Distancing Game Web Server...
 echo.
 python server.py
 pause
+
