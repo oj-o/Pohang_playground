@@ -1084,7 +1084,6 @@ function calculateScore() {
     return score;
 }
 
-// 게임 종료
 // LLM 응답 시뮬레이션 함수
 function getLLMResponseForDistance(score) {
     let message = '';
@@ -1263,7 +1262,7 @@ function renderWaitingScreen() {
             const x = 100 + i * 150;
             const y = 250 + Math.sin(Date.now() / 1000 + i) * 20;
             ctx.beginPath();
-            ctx.arc(x, y, 30, 0, Math.PI * 2);
+            ctx.arc(x, y, 30, 0, 2 * Math.PI);
             ctx.fill();
         }
         
