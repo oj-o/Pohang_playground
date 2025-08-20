@@ -1085,6 +1085,21 @@ function calculateScore() {
 }
 
 // 게임 종료
+// LLM 응답 시뮬레이션 함수
+function getLLMResponseForDistance(score) {
+    let message = '';
+    if (score >= 80) {
+        message = '✨ 훌륭합니다! 사회적 거리두기를 완벽하게 실천하셨습니다. 이대로 계속 유지해주세요!';
+    } else if (score >= 50) {
+        message = '👍 잘하셨습니다! 대부분의 시간 동안 적절한 거리를 유지했습니다. 조금 더 노력하면 완벽해질 거예요.';
+    } else if (score >= 20) {
+        message = '⚠️ 주의가 필요합니다. 때때로 거리가 너무 가까워졌습니다. 다음번에는 2미터 이상 거리를 유지하도록 더 신경 써주세요.';
+    } else {
+        message = '🚨 위험합니다! 사회적 거리두기가 거의 지켜지지 않았습니다. 건강과 안전을 위해 다른 사람들과 충분한 거리를 두는 것이 매우 중요합니다.';
+    }
+    return message;
+}
+
 function endGame() {
     console.log('게임 종료');
     gameState = GAME_STATE_GAME_OVER;
@@ -1092,15 +1107,24 @@ function endGame() {
     // 최종 점수 계산
     const finalScore = calculateScore();
     
+    // LLM 메시지 생성
+    const llmMessageText = getLLMResponseForDistance(finalScore);
+    
     // 게임 오버 화면 표시
     const gameOver = document.getElementById('game-over');
     if (gameOver) {
         const scoreDisplayById = document.getElementById('finalScore');
         if (scoreDisplayById) scoreDisplayById.textContent = String(finalScore);
+        
+        const llmMessageDiv = document.getElementById('llmMessage');
+        if (llmMessageDiv) {
+            llmMessageDiv.textContent = llmMessageText;
+        }
+        
         gameOver.style.display = 'block';
     }
     
-    console.log(`게임 종료 - 최종 점수: ${finalScore}`);
+    console.log(`게임 종료 - 최종 점수: ${finalScore}, LLM 메시지: ${llmMessageText}`);
 }
 
 // 게임 재시작
